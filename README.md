@@ -186,3 +186,37 @@ Wichtig:
 - Platzhalter vollständig ersetzen.
 - Der enthaltene Text ist eine technische Vorlage und muss für den konkreten Betreiber rechtlich geprüft werden.
 - Der Impressum-Link liegt außerhalb der 9:16-Grafik und erscheint deshalb nicht im PNG-Export.
+
+## Änderungen in dieser Version
+
+### PNG-Export wirklich 9:16
+Der Export nutzt jetzt eine versteckte, unskalierte 1080×1920-Grafik. Dadurch wird nicht mehr die kleine Vorschau oder die Browserfläche exportiert, sondern direkt eine postbare Story-Datei.
+
+### Sortierung der Uhrzeiten
+Der Veranstaltungstag läuft von 08:00 Uhr morgens bis 07:59 Uhr am Folgetag.
+
+Beispiele:
+
+- 20:00 kommt vor 22:00
+- 23:30 kommt vor 00:15
+- 00:15, 01:30, 03:00 zählen noch zum vorher ausgewählten Veranstaltungstag
+- Erst Termine ab 08:00 Uhr gehören zum nächsten Veranstaltungstag
+
+### Admin-Schutz
+Auftritte können nur nach Admin-Login hinzugefügt, geändert oder gespeichert werden. Die öffentliche Seite kann nur lesen.
+
+### Aussagekräftige Fehlermeldungen
+Speicher- und Ladefehler geben jetzt konkretere Hinweise aus, z. B. ob Admin-Login, Supabase-ENV, SQL-Setup oder Service-Role-Key geprüft werden müssen.
+
+### CSV-Export für Google Sheets
+Im Backend unter `/admin/tabelle` gibt es jetzt den Button:
+
+`CSV für Google Sheets herunterladen`
+
+Die Datei wird als UTF-8-CSV mit Semikolon-Trennung ausgegeben und lässt sich in Google Sheets importieren.
+
+### Freigestelltes Logo
+`public/knallhart-logo.png` wurde durch ein freigestelltes PNG-Logo ersetzt.
+
+### Hintergrund
+Die Story-Grafik nutzt jetzt das Mockup-Bild als Hintergrundgrundlage. Es wird weich überlagert, damit die Termine lesbar bleiben.
