@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import StoryCanvas from './StoryCanvas';
 import ExportButton from './ExportButton';
-import { EventItem, LOCATIONS, LocationName, shiftDate, sortEventsForShow, timeOptions, todayISO } from '@/lib/config';
+import { EventItem, LOCATIONS, LocationName, shiftDate, sortEventsForShow, dedupeEvents, timeOptions, todayISO } from '@/lib/config';
 
 const times = timeOptions();
 const emptyByLocation = (_date: string) => LOCATIONS.flatMap(_location => [] as EventItem[]);
@@ -29,7 +29,7 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
       const res = await fetch(`/api/events?date=${d}`, { cache: 'no-store' });
       const json = await readJsonSafely(res);
       if (!res.ok) throw new Error(json.error || `Laden fehlgeschlagen (${res.status}).`);
-      setEvents(sortEventsForShow(json.events || []));
+      setEvents(dedupeEvents(json.events || []));
       setNotice(null);
     } catch (err) {
       setEvents([]);
@@ -75,7 +75,7 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
       const res = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, events: sortedEvents }) });
       const json = await readJsonSafely(res);
       if (!res.ok) throw new Error(json.error || `Speichern fehlgeschlagen (${res.status}).`);
-      setNotice({ type: 'ok', text: `Termine für ${date} gespeichert.` });
+      setNotice({ type: 'ok', text: json.message || `Termine für ${date} gespeichert.` });
       await load(date);
     } catch (err) {
       setNotice({ type: 'error', text: err instanceof Error ? err.message : 'Speichern fehlgeschlagen.' });
