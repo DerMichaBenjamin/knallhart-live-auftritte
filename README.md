@@ -42,6 +42,19 @@ create index if not exists events_date_idx on public.events(date);
 create index if not exists events_location_idx on public.events(location);
 create index if not exists events_date_location_time_idx on public.events(date, location, time);
 
+-- Entfernt bereits vorhandene doppelte identische Termine, bevor der eindeutige Index angelegt wird.
+delete from public.events a
+using public.events b
+where a.id > b.id
+  and a.date = b.date
+  and a.location = b.location
+  and a.time = b.time
+  and a.title = b.title;
+
+-- Verhindert doppelte identische Termine beim Speichern.
+create unique index if not exists events_unique_day_location_time_title
+on public.events(date, location, time, title);
+
 alter table public.events enable row level security;
 
 drop policy if exists "events public read" on public.events;
@@ -220,3 +233,16 @@ Die Datei wird als UTF-8-CSV mit Semikolon-Trennung ausgegeben und lässt sich i
 
 ### Hintergrund
 Die Story-Grafik nutzt jetzt das Mockup-Bild als Hintergrundgrundlage. Es wird weich überlagert, damit die Termine lesbar bleiben.
+
+
+## Update-Hinweise v3
+
+- Die öffentliche Startseite zeigt automatisch den Veranstaltungstag bis 01:59 Uhr nachts an. Ab 02:00 Uhr wird der neue Tag angezeigt.
+- Auf der öffentlichen Seite gibt es Buttons für vorherigen/nächsten Tag.
+- Speichern im Admin ersetzt den kompletten gewählten Tag und hängt vorhandene Termine nicht erneut an.
+- Identische Duplikate werden zusätzlich durch den eindeutigen Index `events_unique_day_location_time_title` verhindert.
+- Die Web-Ansicht wurde übersichtlicher gemacht: Steuerung links/oben, Story-Grafik klar getrennt rechts/darunter.
+
+### Künstler-Dropdown später
+
+Ja, das ist problemlos möglich. Sinnvolle Umsetzung: zusätzliche Tabelle `artists` mit `location`, `name`, `created_at`. Im Admin bekommt jede Location dann ein Dropdown mit bekannten Künstlern plus weiterhin ein freies Textfeld. Für das MVP ist es noch nicht eingebaut, weil zuerst Speichern, Tageslogik und Export stabil sein sollten.
