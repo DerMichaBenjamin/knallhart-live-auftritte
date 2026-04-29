@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/auth';
-import { LOCATIONS, sortEventsForShow } from '@/lib/config';
+import { LOCATIONS, dedupeEvents, sortEventsForShow } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase';
 
 function errorResponse(message: string, status = 500, detail?: unknown) {
@@ -35,18 +35,21 @@ export async function POST(req: Request) {
     const invalidLocation = events.find((e:any) => e.location && !LOCATIONS.includes(e.location));
     if (invalidLocation) return errorResponse(`Ungültige Location: ${invalidLocation.location}.`, 400);
 
-    const cleaned = sortEventsForShow(events)
+    const cleaned = dedupeEvents(events
       .filter((e:any) => LOCATIONS.includes(e.location) && e.time && e.title?.trim())
-      .map((e:any) => ({ date, location: e.location, time: e.time, title: String(e.title).trim() }));
+      .map((e:any) => ({ date, location: e.location, time: e.time, title: String(e.title).trim() })));
 
     const admin = supabaseAdmin();
+
+    // Wichtig: Speichern ersetzt immer den kompletten gewählten Tag. Dadurch werden alte Einträge nicht erneut angehängt.
     const del = await admin.from('events').delete().eq('date', date);
     if (del.error) return errorResponse('Speichern fehlgeschlagen: Alte Termine konnten nicht gelöscht werden. Prüfe Service-Role-Key und Tabelle events.', 500, del.error.message);
+
     if (cleaned.length) {
-      const ins = await admin.from('events').insert(cleaned);
-      if (ins.error) return errorResponse('Speichern fehlgeschlagen: Neue Termine konnten nicht eingefügt werden. Prüfe SQL-Setup, RLS und erlaubte Locations.', 500, ins.error.message);
+      const ins = await admin.from('events').upsert(cleaned, { onConflict: 'date,location,time,title', ignoreDuplicates: false });
+      if (ins.error) return errorResponse('Speichern fehlgeschlagen: Neue Termine konnten nicht eingefügt werden. Prüfe SQL-Setup, eindeutigen Index, RLS und erlaubte Locations.', 500, ins.error.message);
     }
-    return NextResponse.json({ ok: true, saved: cleaned.length });
+    return NextResponse.json({ ok: true, saved: cleaned.length, message: `${cleaned.length} Termin(e) gespeichert. Vorhandene Termine dieses Tages wurden ersetzt; doppelte identische Einträge wurden entfernt.` });
   } catch (err) {
     return errorResponse('Serverfehler beim Speichern. Prüfe Vercel ENV Variablen, Supabase SQL und Admin-Login.', 500, err);
   }
