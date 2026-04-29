@@ -1,15 +1,15 @@
 'use client';
 import Image from 'next/image';
-import { EventItem, LOCATIONS, LOCATION_META, formatGermanDate } from '@/lib/config';
+import { EventItem, LOCATIONS, LOCATION_META, formatGermanDate, sortEventsForShow } from '@/lib/config';
 
 export default function StoryCanvas({ date, events, scale = 1, exportId = 'story-canvas' }: { date: string; events: EventItem[]; scale?: number; exportId?: string }) {
-  const byLocation = Object.fromEntries(LOCATIONS.map(l => [l, events.filter(e => e.location === l).sort((a,b)=>a.time.localeCompare(b.time))])) as Record<string, EventItem[]>;
+  const byLocation = Object.fromEntries(LOCATIONS.map(l => [l, sortEventsForShow(events.filter(e => e.location === l))])) as Record<string, EventItem[]>;
   return (
     <div style={{ width: 1080 * scale, height: 1920 * scale, overflow: 'hidden' }}>
-      <div id={exportId} className="story-bg relative text-[#06285f]" style={{ width: 1080, height: 1920, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+      <div id={exportId} className="story-bg relative text-[#06285f]" style={{ width: 1080, height: 1920, transform: scale === 1 ? "none" : `scale(${scale})`, transformOrigin: 'top left' }}>
         <div className="relative z-10 h-full px-[70px] pt-[38px] pb-[38px] flex flex-col">
           <header className="text-center">
-            <div className="mx-auto relative w-[360px] h-[250px] -mb-[18px]"><Image src="/knallhart-logo.png" alt="Knallhart serviert" fill className="object-contain" priority /></div>
+            <div className="mx-auto relative w-[390px] h-[230px] -mb-[4px]"><Image src="/knallhart-logo.png" alt="Knallhart serviert" fill className="object-contain" priority /></div>
             <div className="text-[64px] font-black tracking-[5px] leading-none">LIVE-AUFTRITTE</div>
             <div className="text-[38px] font-black tracking-[14px] text-[#ef146d] mt-[10px]">MALLORCA</div>
             <div className="mx-auto mt-[18px] h-[8px] w-[620px] bg-[#ef146d] rounded-full opacity-90" />
