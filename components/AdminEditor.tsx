@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import StoryCanvas from './StoryCanvas';
 import ExportButton from './ExportButton';
 import ArtistAutocompleteInput from './ArtistAutocompleteInput';
-import { EventItem, LOCATIONS, LocationName, shiftDate, sortEventsForShow, dedupeEvents, timeOptions, todayISO } from '@/lib/config';
+import { DEFAULT_TIMES_BY_LOCATION, EventItem, LOCATIONS, LocationName, makeDefaultEventSlots, mergeWithDefaultEventSlots, shiftDate, sortEventsForShow, dedupeEvents, timeOptions, todayISO } from '@/lib/config';
 
 const times = timeOptions();
-const emptyByLocation = (_date: string) => LOCATIONS.flatMap(_location => [] as EventItem[]);
+const emptyByLocation = (date: string) => makeDefaultEventSlots(date);
 
 type Notice = { type: 'ok' | 'error' | 'info'; text: string } | null;
 
@@ -30,10 +30,10 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
       const res = await fetch(`/api/events?date=${d}`, { cache: 'no-store' });
       const json = await readJsonSafely(res);
       if (!res.ok) throw new Error(json.error || `Laden fehlgeschlagen (${res.status}).`);
-      setEvents(dedupeEvents(json.events || []));
+      setEvents(mergeWithDefaultEventSlots(d, dedupeEvents(json.events || [])));
       setNotice(null);
     } catch (err) {
-      setEvents([]);
+      setEvents(emptyByLocation(d));
       setNotice({ type: 'error', text: err instanceof Error ? err.message : 'Termine konnten nicht geladen werden.' });
     }
   }
@@ -58,7 +58,11 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
   }
   function add(location: LocationName) {
     if (!requireLogin()) return;
-    setEvents(sortEventsForShow([...events, { date, location, time: '20:00', title: '' }]));
+    const existingTimes = new Set(events.filter(e => e.location === location).map(e => e.time));
+    const defaultTimes = DEFAULT_TIMES_BY_LOCATION[location] || ['20:00'];
+    const nextDefaultTime = defaultTimes.find(time => !existingTimes.has(time));
+    const fallbackTime = defaultTimes[defaultTimes.length - 1] || '20:00';
+    setEvents(sortEventsForShow([...events, { date, location, time: nextDefaultTime || fallbackTime, title: '' }]));
   }
   function update(i: number, patch: Partial<EventItem>) {
     if (!requireLogin()) return;
