@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase';
-import { sortEventsForShow } from '@/lib/config';
+import { LOCATIONS, sortEventsForShow } from '@/lib/config';
 
 export default async function TabellePage({ searchParams }: { searchParams: Promise<Record<string,string|undefined>> }) {
   const sp = await searchParams;
@@ -19,7 +19,10 @@ export default async function TabellePage({ searchParams }: { searchParams: Prom
     <div className="admin-card p-5"><Link className="btn btn-secondary" href="/admin">← Admin</Link><h1 className="text-3xl font-black mt-4">Tabellenansicht</h1></div>
     <form className="admin-card p-5 grid md:grid-cols-5 gap-3">
       <input className="input" type="date" name="date" defaultValue={sp.date || ''} />
-      <select className="input" name="location" defaultValue={sp.location || ''}><option value="">Alle Locations</option><option>Bierkönig</option><option>Megapark</option><option>Oberbayern</option><option>MK Arena</option></select>
+      <select className="input" name="location" defaultValue={sp.location || ''}>
+        <option value="">Alle Locations</option>
+        {LOCATIONS.map(location => <option key={location}>{location}</option>)}
+      </select>
       <input className="input" name="artist" placeholder="Artist suchen" defaultValue={sp.artist || ''} />
       <button className="btn">Filtern</button>
       <a className="btn btn-secondary text-center" href={csvHref}>CSV für Google Sheets herunterladen</a>
