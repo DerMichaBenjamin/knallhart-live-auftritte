@@ -1,4 +1,4 @@
-export const LOCATIONS = ['Bierkönig', 'Megapark', 'Oberbayern', 'MK Arena'] as const;
+export const LOCATIONS = ['Bierkönig', 'Megapark', 'Oberbayern', 'MK Arena', 'Münchner Kindl', 'Bolero'] as const;
 export type LocationName = typeof LOCATIONS[number];
 
 export type EventItem = {
@@ -13,7 +13,18 @@ export const LOCATION_META: Record<LocationName, { logo: string; color: string; 
   'Bierkönig': { logo: '/bierkoenig-logo.png', color: '#d49a27', short: 'BIERKÖNIG' },
   'Megapark': { logo: '/megapark-logo.png', color: '#ef146d', short: 'MEGAPARK' },
   'Oberbayern': { logo: '/oberbayern-logo.png', color: '#0757a6', short: 'OBERBAYERN' },
-  'MK Arena': { logo: '/mk-arena-logo.png', color: '#ef146d', short: 'MK ARENA' }
+  'MK Arena': { logo: '/mk-arena-logo.png', color: '#ef146d', short: 'MK ARENA' },
+  'Münchner Kindl': { logo: '/muenchner-kindl-logo.png', color: '#d49a27', short: 'MÜNCHNER KINDL' },
+  'Bolero': { logo: '/bolero-logo.png', color: '#ef146d', short: 'BOLERO' }
+};
+
+export const DEFAULT_TIMES_BY_LOCATION: Record<LocationName, string[]> = {
+  'Bierkönig': ['12:00', '15:00', '17:30', '20:00', '22:00', '00:00', '01:30'],
+  'Megapark': ['12:00', '14:00', '17:00', '20:30', '22:30', '00:30'],
+  'Oberbayern': ['22:00', '23:00', '00:00', '01:30', '02:30'],
+  'MK Arena': ['23:30', '00:30', '01:30', '02:30'],
+  'Münchner Kindl': ['22:00'],
+  'Bolero': ['00:15']
 };
 
 export function timeOptions() {
@@ -29,11 +40,13 @@ export function eventSortValue(time: string) {
   return minutes < 8 * 60 ? minutes + 24 * 60 : minutes;
 }
 
-export function sortEventsForShow<T extends { time: string; location?: string }>(events: T[]) {
+export function sortEventsForShow<T extends { time: string; location?: string; title?: string }>(events: T[]) {
   return [...events].sort((a, b) => {
     const timeDiff = eventSortValue(a.time).valueOf() - eventSortValue(b.time).valueOf();
     if (timeDiff !== 0) return timeDiff;
-    return String(a.location || '').localeCompare(String(b.location || ''), 'de');
+    const locationDiff = String(a.location || '').localeCompare(String(b.location || ''), 'de', { sensitivity: 'base' });
+    if (locationDiff !== 0) return locationDiff;
+    return String(a.title || '').localeCompare(String(b.title || ''), 'de', { sensitivity: 'base' });
   });
 }
 
@@ -47,6 +60,23 @@ export function dedupeEvents<T extends { date?: string; location: string; time: 
     out.push(e);
   }
   return out;
+}
+
+export function makeDefaultEventSlots(date: string): EventItem[] {
+  return LOCATIONS.flatMap(location =>
+    DEFAULT_TIMES_BY_LOCATION[location].map(time => ({ date, location, time, title: '' }))
+  );
+}
+
+export function mergeWithDefaultEventSlots(date: string, events: EventItem[]) {
+  const filledTimes = new Set(
+    events
+      .filter(e => e.title.trim())
+      .map(e => `${e.location}|${e.time}`)
+  );
+
+  const emptySlots = makeDefaultEventSlots(date).filter(slot => !filledTimes.has(`${slot.location}|${slot.time}`));
+  return sortEventsForShow([...events, ...emptySlots]);
 }
 
 export function todayISO() {
