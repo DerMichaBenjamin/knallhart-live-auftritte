@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import StoryCanvas from './StoryCanvas';
 import ExportButton from './ExportButton';
+import ArtistAutocompleteInput from './ArtistAutocompleteInput';
 import { EventItem, LOCATIONS, LocationName, shiftDate, sortEventsForShow, dedupeEvents, timeOptions, todayISO } from '@/lib/config';
 
 const times = timeOptions();
@@ -108,7 +109,7 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
           {indexed.length > 8 && <p className="font-bold text-[#d61f43]">Viele Termine – bitte Vorschau prüfen.</p>}
           {indexed.map(({ e, i }) => <div key={`${e.location}-${i}`} className="grid grid-cols-[120px_1fr_auto] gap-2">
             <select className="input" disabled={!loggedIn} value={e.time} onChange={ev=>update(i,{ time: ev.target.value })}>{times.map(t=><option key={t}>{t}</option>)}</select>
-            <input className="input" disabled={!loggedIn} placeholder="Artist / Terminname" value={e.title} onChange={ev=>update(i,{ title: ev.target.value })} />
+            <ArtistAutocompleteInput disabled={!loggedIn} location={e.location} value={e.title} onChange={value=>update(i,{ title: value })} />
             <button className="btn btn-danger" disabled={!loggedIn} onClick={()=>remove(i)}>Löschen</button>
           </div>)}
         </div>;
