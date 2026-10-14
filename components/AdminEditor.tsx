@@ -110,7 +110,7 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
         const indexed = sortedEvents.map((e, i) => ({ e, i })).filter(x => x.e.location === location);
         return <div key={location} className="admin-card p-5 space-y-3">
           <div className="flex justify-between items-center"><h2 className="text-xl font-black">{location}</h2><button className="btn btn-secondary" disabled={!loggedIn} onClick={()=>add(location)}>+ Termin hinzufügen</button></div>
-          {indexed.length > 8 && <p className="font-bold text-[#d61f43]">Viele Termine – bitte Vorschau prüfen.</p>}
+          {indexed.length > 8 && <p className="print:hidden font-bold text-[#d61f43]">Viele Termine – bitte Vorschau prüfen.</p>}
           {indexed.map(({ e, i }) => <div key={`${e.location}-${i}`} className="grid grid-cols-[120px_1fr_auto] gap-2">
             <select className="input" disabled={!loggedIn} value={e.time} onChange={ev=>update(i,{ time: ev.target.value })}>{times.map(t=><option key={t}>{t}</option>)}</select>
             <ArtistAutocompleteInput disabled={!loggedIn} location={e.location} value={e.title} onChange={value=>update(i,{ title: value })} />
