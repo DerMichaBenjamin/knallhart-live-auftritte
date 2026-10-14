@@ -33,7 +33,6 @@ export default function StoryCanvas({ date, events, scale = 1, exportId = 'story
                       </div>
                     ))}
                   </div>
-                  {list.length > 8 && <p className="mt-[8px] text-center text-[21px] font-black text-[#d61f43]">Viele Termine – bitte Vorschau prüfen.</p>}
                 </section>
               );
             })}
