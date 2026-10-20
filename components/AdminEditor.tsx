@@ -94,7 +94,6 @@ export default function AdminEditor({ initialDate = todayISO() }: { initialDate?
         <div className="flex items-center gap-3 flex-wrap">
           <a className="btn btn-secondary" href="/">Öffentliche Seite</a><a className="btn btn-secondary" href="/admin/archiv">Archiv</a><a className="btn btn-secondary" href="/admin/tabelle">Tabelle</a><a className="btn btn-secondary" href="/admin/impressum">Impressum</a>
         </div>
-        <div className="flex gap-3 items-center flex-wrap"><a className={`btn btn-secondary ${!loggedIn ? "pointer-events-none opacity-50" : ""}`} href={loggedIn ? "/api/admin/export-csv" : undefined} download>Alle Auftritte als CSV herunterladen</a><span className="text-sm opacity-70">Vollständiger Datenexport, nur für eingeloggte Admins</span></div>
         {!loggedIn && <div className="flex gap-3 flex-wrap"><input className="input max-w-xs" type="password" placeholder="Admin-Passwort" value={password} onChange={e=>setPassword(e.target.value)} /><button className="btn" onClick={login}>Einloggen</button></div>}
         <div className="grid sm:grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-end">
           <label className="font-bold">Datum<input className="input mt-1" type="date" value={date} onChange={e=>setDate(e.target.value)} /></label>
